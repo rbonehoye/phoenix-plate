@@ -4,12 +4,27 @@ A calorie tracker for Elon University's dining halls (Lakeside, McEwen, Clohan).
 It's a web app (PWA): open it in Safari or Chrome and add it to your home screen.
 No App Store, no Apple Developer account.
 
-- **Menu:** today's menu for each hall by meal period, with calories, protein,
-  carbs, fat, allergens and dietary tags. Search and filter (vegetarian, vegan,
-  made without gluten).
-- **Log:** tap an item, pick servings, add it. Daily totals against your goals.
-- **Quick add:** for food from anywhere else.
-- **Private:** your log is stored only on your phone (localStorage).
+- **Today:** calorie ring, protein/carbs/fat progress and meals (breakfast,
+  lunch, dinner, snacks). A week strip lets you view and edit past days.
+- **Menu:** today's menu for each hall by meal period, with calories and macros
+  on every item, one-tap add, search and dietary filters.
+- **Retail:** Qdoba, Einstein Bros, Biscuitville and Freshii use their official
+  nutrition guides. Flat Out crusts use Flatout's package labels; its toppings
+  are estimates. Global Rolls, Village Juice and Acorn use the calories on
+  Elon's menus with estimated macros. Billy D's and Boar's Head are estimates.
+  Every non-official item is labeled. Data lives in `src/retail.js`; update it
+  when menus change.
+- **Barcode scanning:** live camera scan, or read a barcode from a photo, or
+  type the number. Food data comes from Open Food Facts (free, crowd-sourced).
+- **Goals:** cut, maintain or bulk. Weight, goal weight, height, age, sex and
+  activity give a daily calorie target (Mifflin-St Jeor) and a recommended
+  macro split you can change.
+- **Progress:** weigh-ins chart with a projection to your goal weight, a
+  milestone timeline, weekly calories, streak and averages.
+- **Themes:** grey with Elon maroon and gold; follows the phone's light/dark
+  mode, or pick one in Settings.
+- **Private:** your log, weigh-ins and goals are stored only on your phone
+  (localStorage).
 
 ## How the menu data works
 

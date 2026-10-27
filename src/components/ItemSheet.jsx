@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Icon from './Icon.jsx';
+import SheetTop from './SheetTop.jsx';
 import Ring from './Ring.jsx';
 import { BASIS_NOTE } from '../retail.js';
 import { amount, grams, mealForPeriod, mealForTime } from '../utils.js';
@@ -28,7 +29,7 @@ export default function ItemSheet({ item, hall, period, onClose, onAdd }) {
   return (
     <div className="backdrop" onClick={onClose}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label={item.name} onClick={(e) => e.stopPropagation()}>
-        <div className="grip" />
+        <SheetTop onClose={onClose} />
         <div className="sub">{hall.name}{period.retail ? '' : ` · ${period.name}`}</div>
         <h2>{item.name}</h2>
         {(item.basis === 'menu' || item.basis === 'estimate') && <p className="notice warn" style={{ fontSize: 13, padding: '8px 12px', marginTop: -4 }}>{BASIS_NOTE[item.basis]}</p>}

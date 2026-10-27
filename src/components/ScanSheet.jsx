@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import Icon from './Icon.jsx';
+import SheetTop from './SheetTop.jsx';
 import Ring from './Ring.jsx';
 import { cameraSupported, decodeImageFile, isBarcode, lookupBarcode, recentFoods, startCamera } from '../barcode.js';
 import { MEALS, amount, grams } from '../utils.js';
@@ -183,7 +184,7 @@ export default function ScanSheet({ meal: initialMeal, onClose, onAdd, onManual 
   return (
     <div className="backdrop" onClick={onClose}>
       <div className="sheet" role="dialog" aria-modal="true" aria-label="Scan a barcode" onClick={(e) => e.stopPropagation()}>
-        <div className="grip" />
+        <SheetTop onClose={onClose} />
         <div className="chips" style={{ marginBottom: 12 }}>
           {MEALS.map((m) => (
             <button key={m} className={`chip ${m === meal ? 'active' : ''}`} onClick={() => setMeal(m)}>

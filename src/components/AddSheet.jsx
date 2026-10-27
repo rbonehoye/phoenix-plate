@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import Icon from './Icon.jsx';
+import SheetTop from './SheetTop.jsx';
 import { MEALS } from '../utils.js';
 
 const digits = (v) => v.replace(/[^\d.]/g, '');
@@ -45,7 +46,7 @@ export default function AddSheet({ meal: initialMeal, initial, onClose, onAdd, o
   return (
     <div className="backdrop" onClick={onClose}>
       <form className="sheet" role="dialog" aria-modal="true" aria-label="Add food" onClick={(e) => e.stopPropagation()} onSubmit={submit}>
-        <div className="grip" />
+        <SheetTop onClose={onClose} />
         <h2>Add food</h2>
 
         <button type="button" className="scan-cta" onClick={() => onScan(meal)}>

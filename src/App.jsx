@@ -120,12 +120,10 @@ export default function App() {
             log={log}
             day={day}
             today={today}
-            menus={menus}
             onPickDay={setDay}
             targets={targets}
             onRemove={removeEntry}
             onAddMeal={openMeal}
-            onAddPlate={(p) => p.parts.forEach(({ item, servings }) => addMenuItem(item, p.hall, p.period, servings))}
             hasProfile={!!targets.plan}
             onSetup={() => setTab('settings')}
           />
@@ -137,6 +135,9 @@ export default function App() {
             day={day}
             today={today}
             mealHint={mealHint}
+            todayEntries={log[today] ?? []}
+            targets={targets}
+            onAddPlate={(p) => p.parts.forEach(({ item, servings }) => addMenuItem(item, p.hall, p.period, servings))}
             onSelect={(item, hall, period) => setSheet({ type: 'item', item, hall, period })}
             onQuickAdd={addMenuItem}
             onScan={() => setSheet({ type: 'scan', meal: mealForTime() })}

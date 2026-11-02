@@ -281,13 +281,10 @@ input[type='range'] { width: 100%; accent-color: var(--maroon); }
 .chart text { font-size: 10px; fill: var(--muted); }
 .log-weight { display: flex; gap: 8px; margin-top: 12px; }
 .log-weight .input { flex: 1; }
-.plate { background: var(--card-2); border-radius: 14px; padding: 12px; }
-.plate + .plate { margin-top: 8px; }
 .plate-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 6px; }
 .plate ul { list-style: none; margin: 0 0 10px; padding: 0; }
 .plate li { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; font-size: 14px; }
 .plate li .sub { text-align: right; flex-shrink: 0; }
-.plate .btn { background: var(--card); }
 .week-avg { list-style: none; margin: 0; padding: 0; }
 .week-avg li { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .week-avg li:last-child { border-bottom: 0; }

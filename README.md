@@ -21,10 +21,11 @@ No App Store, no Apple Developer account.
   macro split you can change.
 - **Progress:** weigh-ins chart with a projection to your goal weight, a
   milestone timeline, weekly calories, streak and averages.
-- **Meal ideas:** on Today, up to three plates (one per hall) for the next
-  meal you haven't logged, built from today's menu: a protein, a vegetable and
-  carb sides, sized to what's left of your calories and protein. One tap logs
-  the whole plate. Logic is in `src/suggest.js`.
+- **Meal ideas:** Menu → Ideas. Pick breakfast, lunch or dinner (it starts on
+  the next meal you haven't logged) and get up to three plates, one per hall,
+  built from today's menu: a protein, a vegetable and carb sides, sized to
+  what's left of your calories and protein. One tap logs the whole plate.
+  Logic is in `src/suggest.js`.
 - **Weekly average and pace check:** weigh-ins are averaged per week. After
   2 weeks of weigh-ins, the app compares the trend with your planned rate and,
   if you're more than 0.25 lb/week off, offers a one-tap 150 cal/day change.

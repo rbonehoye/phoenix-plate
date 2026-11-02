@@ -5,7 +5,7 @@
 
 import { MEALS, entryMeal, mealForPeriod, totals } from './utils.js';
 
-const MAIN_MEALS = ['Breakfast', 'Lunch', 'Dinner'];
+export const MAIN_MEALS = ['Breakfast', 'Lunch', 'Dinner'];
 // Usual share of the day's calories and protein for each meal.
 const SHARE = { Breakfast: 0.25, Lunch: 0.3, Dinner: 0.3, Snacks: 0.15 };
 const MAX_OVER_SHARE = 1.3; // a meal can run up to 30% over its usual share to catch up

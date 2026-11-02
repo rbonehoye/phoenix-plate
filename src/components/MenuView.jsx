@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Icon from './Icon.jsx';
+import Suggestions from './Suggestions.jsx';
 import { RETAIL } from '../retail.js';
 import { capitalize, currentPeriodIndex, formatDate, grams, mealForPeriod } from '../utils.js';
 
@@ -249,7 +250,13 @@ function RetailMenu({ onSelect, onQuickAdd, onScan }) {
   );
 }
 
-export default function MenuView({ menus, error, day, today, mealHint, onSelect, onQuickAdd, onScan }) {
+const HEAD = {
+  halls: ['Today’s menus', 'Dining halls'],
+  retail: ['Cafés and restaurants on campus', 'Retail'],
+  ideas: ['Built from today’s menus', 'Meal ideas'],
+};
+
+export default function MenuView({ menus, error, day, today, mealHint, todayEntries, targets, onSelect, onQuickAdd, onAddPlate, onScan }) {
   const [source, setSource] = useState(() => saved('pp.menuSource') ?? 'halls');
 
   // Coming from a meal's + button always means the dining halls.
@@ -266,8 +273,8 @@ export default function MenuView({ menus, error, day, today, mealHint, onSelect,
     <div>
       <header className="page-head">
         <div>
-          <div className="eyebrow">{source === 'halls' ? 'Today’s menus' : 'Cafés and restaurants on campus'}</div>
-          <h1>{source === 'halls' ? 'Dining halls' : 'Retail'}</h1>
+          <div className="eyebrow">{(HEAD[source] ?? HEAD.halls)[0]}</div>
+          <h1>{(HEAD[source] ?? HEAD.halls)[1]}</h1>
         </div>
       </header>
 
@@ -276,12 +283,16 @@ export default function MenuView({ menus, error, day, today, mealHint, onSelect,
       <div className="segmented" style={{ marginBottom: 12 }}>
         <button className={source === 'halls' ? 'active' : ''} onClick={() => pick('halls')}>Dining halls</button>
         <button className={source === 'retail' ? 'active' : ''} onClick={() => pick('retail')}>Retail</button>
+        <button className={source === 'ideas' ? 'active' : ''} onClick={() => pick('ideas')}>Ideas</button>
       </div>
 
-      {source === 'halls' ? (
-        <HallsMenu menus={menus} error={error} today={today} mealHint={mealHint} onSelect={onSelect} onQuickAdd={onQuickAdd} />
-      ) : (
+      {source === 'retail' ? (
         <RetailMenu onSelect={onSelect} onQuickAdd={onQuickAdd} onScan={onScan} />
+      ) : source === 'ideas' ? (
+        error ? <p className="notice">Couldn’t load menus ({error}). Check your connection and reopen the app.</p>
+          : <Suggestions menus={menus} entries={todayEntries} targets={targets} today={today} onAddPlate={onAddPlate} />
+      ) : (
+        <HallsMenu menus={menus} error={error} today={today} mealHint={mealHint} onSelect={onSelect} onQuickAdd={onQuickAdd} />
       )}
     </div>
   );

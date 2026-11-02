@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Icon from './Icon.jsx';
 import Ring from './Ring.jsx';
+import Suggestions from './Suggestions.jsx';
 import { MEALS, addDays, entryMeal, fmt, formatDate, grams, keyToDate, totals } from '../utils.js';
 
 const MEAL_ICON = { Breakfast: 'coffee', Lunch: 'sun', Dinner: 'moon', Snacks: 'apple' };
@@ -43,7 +44,7 @@ function WeekStrip({ day, today, log, onPick }) {
   );
 }
 
-export default function Today({ log, day, today, onPickDay, targets, onRemove, onAddMeal, hasProfile, onSetup }) {
+export default function Today({ log, day, today, menus, onPickDay, targets, onRemove, onAddMeal, onAddPlate, hasProfile, onSetup }) {
   const entries = log[day] ?? [];
   const t = totals(entries);
   const left = targets.calories - t.calories;
@@ -107,6 +108,8 @@ export default function Today({ log, day, today, onPickDay, targets, onRemove, o
           <Icon name="right" size={18} />
         </button>
       )}
+
+      {day === today && <Suggestions menus={menus} entries={entries} targets={targets} today={today} onAddPlate={onAddPlate} />}
 
       <section className="card meals">
         {MEALS.map((meal) => {

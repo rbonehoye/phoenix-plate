@@ -120,10 +120,12 @@ export default function App() {
             log={log}
             day={day}
             today={today}
+            menus={menus}
             onPickDay={setDay}
             targets={targets}
             onRemove={removeEntry}
             onAddMeal={openMeal}
+            onAddPlate={(p) => p.parts.forEach(({ item, servings }) => addMenuItem(item, p.hall, p.period, servings))}
             hasProfile={!!targets.plan}
             onSetup={() => setTab('settings')}
           />

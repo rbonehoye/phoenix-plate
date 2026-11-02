@@ -49,11 +49,14 @@ function GoalsForm({ profile, latestWeight, today, onSave }) {
     setD((prev) => ({ ...prev, [k]: v }));
   };
 
+  const goalWeightOf = () => (d.goal === 'maintain' ? Number(d.weight) : Number(d.goalWeight));
+  // Restart the timeline when the goal itself changes; keep it when only stats are updated.
+  const isRestart = () => !profile || profile.goal !== d.goal || profile.goalWeightLb !== goalWeightOf() || profile.rate !== d.rate;
+
   function toProfile() {
     const weight = Number(d.weight);
-    const goalWeightLb = d.goal === 'maintain' ? weight : Number(d.goalWeight);
-    // Restart the timeline when the goal itself changes; keep it when only stats are updated.
-    const restart = !profile || profile.goal !== d.goal || profile.goalWeightLb !== goalWeightLb || profile.rate !== d.rate;
+    const goalWeightLb = goalWeightOf();
+    const restart = isRestart();
     return {
       goal: d.goal,
       rate: d.goal === 'maintain' ? 0 : d.rate,
@@ -74,7 +77,7 @@ function GoalsForm({ profile, latestWeight, today, onSave }) {
     const errs = validate(d);
     setErrors(errs);
     if (errs.length) return;
-    onSave(toProfile(), Number(d.weight));
+    onSave(toProfile(), Number(d.weight), isRestart());
     setSaved(true);
   }
 
@@ -259,8 +262,9 @@ export default function Settings({ settings, onChange, latestWeight, today, targ
         profile={settings.profile}
         latestWeight={latestWeight}
         today={today}
-        onSave={(profile, weight) => {
-          update({ profile });
+        onSave={(profile, weight, restart) => {
+          // A trend adjustment belongs to the old goal, so a new goal starts from the formula.
+          update(restart ? { profile, calorieAdjust: 0, adjustedOn: null } : { profile });
           if (weight !== latestWeight) onLogWeight(today, weight);
         }}
       />
@@ -279,6 +283,17 @@ export default function Settings({ settings, onChange, latestWeight, today, targ
           />
           <div className="hint">Leave blank to use the target from your goal.</div>
         </label>
+        {!settings.calorieOverride && settings.calorieAdjust !== 0 && targets.plan && (
+          <div className="adjust-note">
+            <span className="sub">
+              Includes {settings.calorieAdjust > 0 ? '+' : '−'}{fmt(Math.abs(settings.calorieAdjust))} cal from your weigh-in trend
+              (formula: {fmt(targets.plan.calories)}).
+            </span>
+            <button className="pill" style={{ background: 'var(--card-2)' }} onClick={() => update({ calorieAdjust: 0, adjustedOn: null })}>
+              Reset
+            </button>
+          </div>
+        )}
       </section>
 
       <section className="card">

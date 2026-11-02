@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import Icon from './Icon.jsx';
-import { GOALS, actualRate, milestones } from '../nutrition.js';
-import { addDays, daysBetween, fmt, formatDate, streak, totals } from '../utils.js';
+import { GOALS, actualRate, milestones, paceCheck, weeklyAverages } from '../nutrition.js';
+import { addDays, daysBetween, fmt, formatDate, streak, totals, weekOf } from '../utils.js';
 
 const short = (d) => formatDate(d, { month: 'short', day: 'numeric' });
 const lbs = (n) => `${Math.round(n * 10) / 10}`;
@@ -80,7 +80,67 @@ function LogWeight({ latest, today, onLog }) {
   );
 }
 
-function GoalCard({ profile, plan, weights, today, onLogWeight }) {
+// Last four weeks of weekly averages, newest first, with the change from the week before.
+function WeeklyTrend({ weights, today }) {
+  const weeks = weeklyAverages(weights, addDays(weekOf(today)[0], -21));
+  if (!weeks.length) return null;
+  const rows = weeks.map((w, i) => ({ ...w, delta: i ? w.avg - weeks[i - 1].avg : null })).reverse();
+  return (
+    <>
+      <h3 style={{ margin: '18px 0 4px' }}>Weekly average</h3>
+      <p className="sub" style={{ margin: '0 0 6px' }}>Daily weight swings with water and food. Compare weeks, not days.</p>
+      <ul className="week-avg">
+        {rows.map((w) => (
+          <li key={w.week}>
+            <div>
+              <div style={{ fontWeight: 600 }}>{w.week === weekOf(today)[0] ? 'This week' : `Week of ${short(w.week)}`}</div>
+              <div className="sub">{w.n} {w.n === 1 ? 'weigh-in' : 'weigh-ins'}</div>
+            </div>
+            <div className="num">
+              <b>{lbs(w.avg)} lb</b>
+              {w.delta != null && <span className="sub"> {w.delta >= 0 ? '+' : '−'}{lbs(Math.abs(w.delta))}</span>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+const pace = (r) => (Math.abs(r) < 0.05 ? 'holding steady' : `${r > 0 ? 'gaining' : 'losing'} ${lbs(Math.abs(r))} lb/week`);
+
+// Compares the weekly-average trend with the plan and offers a 150 cal change when it's off.
+function PaceCheck({ profile, weights, today, settings, calories, onApply }) {
+  const check = paceCheck(profile, weights, today, settings.adjustedOn);
+  const plannedText = profile.goal === 'maintain' ? 'hold your weight' : `${profile.goal === 'cut' ? 'lose' : 'gain'} ${profile.rate} lb/week`;
+  let body;
+  if (!check.ready) {
+    body = check.stale
+      ? 'Your last weigh-in was a while ago. Weigh in 3–4 mornings a week to get a pace check.'
+      : `${check.since === settings.adjustedOn ? `You changed your target on ${short(settings.adjustedOn)}. ` : ''}Weigh in 3–4 mornings a week. Your ${check.since === settings.adjustedOn ? 'next' : 'first'} pace check is ready around ${short(check.readyOn)}.`;
+  } else if (!check.change) {
+    body = <>On pace: you’re {pace(check.rate)} and your plan is to {plannedText}. Keep your target at {fmt(calories)} cal.</>;
+  } else {
+    const more = check.change > 0;
+    body = (
+      <>
+        You’re {pace(check.rate)}, but your plan is to {plannedText}. Try eating about {fmt(Math.abs(check.change))} cal {more ? 'more' : 'less'} a day
+        ({fmt(calories + check.change)} cal).
+        <button className="btn primary block" style={{ marginTop: 10 }} onClick={() => onApply(check.change)}>
+          {more ? 'Add' : 'Cut'} {fmt(Math.abs(check.change))} cal a day
+        </button>
+      </>
+    );
+  }
+  return (
+    <>
+      <h3 style={{ margin: '18px 0 4px' }}>Pace check</h3>
+      <p className={`notice ${check.ready && check.change ? 'warn' : ''}`} style={{ margin: 0 }}>{body}</p>
+    </>
+  );
+}
+
+function GoalCard({ profile, plan, weights, today, settings, calories, onApplyAdjust, onLogWeight }) {
   const goal = GOALS[profile.goal];
   const latest = weights.length ? weights[weights.length - 1].lb : profile.weightLb;
   const cutOrBulk = profile.goal !== 'maintain';
@@ -95,7 +155,7 @@ function GoalCard({ profile, plan, weights, today, onLogWeight }) {
     <section className="card">
       <div className="card-head">
         <h2 style={{ margin: 0 }}>{goal.verb}{cutOrBulk ? ` · ${profile.rate} lb/week` : ''}</h2>
-        <span className="sub">{fmt(plan.calories)} cal/day</span>
+        <span className="sub">{fmt(calories)} cal/day</span>
       </div>
 
       <div className="weight-row">
@@ -109,6 +169,8 @@ function GoalCard({ profile, plan, weights, today, onLogWeight }) {
 
       <WeightChart weights={weights} goalWeight={cutOrBulk ? profile.goalWeightLb : null} projection={projection} />
       <LogWeight latest={weights.length ? latest : null} today={today} onLog={onLogWeight} />
+      <WeeklyTrend weights={weights} today={today} />
+      <PaceCheck profile={profile} weights={weights} today={today} settings={settings} calories={calories} onApply={onApplyAdjust} />
 
       {cutOrBulk && (
         <>
@@ -226,7 +288,16 @@ function Stats({ log, today, targets }) {
   );
 }
 
-export default function Progress({ log, today, weights, settings, targets, onLogWeight, onOpenDay, onSetup }) {
+export default function Progress({ log, today, weights, settings, targets, onChangeSettings, onLogWeight, onOpenDay, onSetup }) {
+  // A custom target set in Settings gets the change directly; otherwise it's added to the formula.
+  function applyAdjust(change) {
+    onChangeSettings(
+      settings.calorieOverride
+        ? { ...settings, calorieOverride: settings.calorieOverride + change, adjustedOn: today }
+        : { ...settings, calorieAdjust: (settings.calorieAdjust || 0) + change, adjustedOn: today },
+    );
+  }
+
   return (
     <div>
       <header className="page-head">
@@ -237,7 +308,16 @@ export default function Progress({ log, today, weights, settings, targets, onLog
       </header>
 
       {targets.plan ? (
-        <GoalCard profile={settings.profile} plan={targets.plan} weights={weights} today={today} onLogWeight={onLogWeight} />
+        <GoalCard
+          profile={settings.profile}
+          plan={targets.plan}
+          weights={weights}
+          today={today}
+          settings={settings}
+          calories={targets.calories}
+          onApplyAdjust={applyAdjust}
+          onLogWeight={onLogWeight}
+        />
       ) : (
         <button className="card setup" onClick={onSetup}>
           <span className="setup-icon"><Icon name="target" /></span>

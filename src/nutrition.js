@@ -2,7 +2,7 @@
 // BMR uses the Mifflin-St Jeor equation; maintenance (TDEE) = BMR x activity.
 // 1 lb of body weight ~ 3,500 cal, so 1 lb/week ~ 500 cal/day.
 
-import { addDays, daysBetween } from './utils.js';
+import { addDays, daysBetween, weekOf } from './utils.js';
 
 export const ACTIVITY = [
   { id: 'sedentary', label: 'Mostly sitting', detail: 'Little or no exercise', factor: 1.2 },
@@ -103,9 +103,16 @@ export function gramsFor(calories, pct) {
   return g;
 }
 
+// The calculated target plus any adjustment made from the weigh-in trend.
+function adjusted(p, settings) {
+  if (!p) return 2000;
+  const floor = FLOOR[settings.profile.sex] ?? 1200;
+  return Math.max(floor, p.calories + (settings.calorieAdjust || 0));
+}
+
 export function targets(settings, latestWeight, today) {
   const p = plan(settings.profile, latestWeight, today);
-  const calories = settings.calorieOverride || p?.calories || 2000;
+  const calories = settings.calorieOverride || adjusted(p, settings);
   const pct = macroPct(settings, calories, p?.weight);
   return { calories, pct, recommendedPct: recommendedPct(settings.profile, calories, p?.weight), ...gramsFor(calories, pct), plan: p };
 }
@@ -136,4 +143,47 @@ export function actualRate(weights, startDate) {
   const days = daysBetween(first.date, last.date);
   if (days < 7) return null;
   return ((last.lb - first.lb) / days) * 7;
+}
+
+// Average weigh-in for each Monday-to-Sunday week from `since` on. Single
+// weigh-ins swing a few pounds with water and food, so trends use these.
+export function weeklyAverages(weights, since = '') {
+  const byWeek = {};
+  for (const w of weights) {
+    if (w.date < since) continue;
+    const week = weekOf(w.date)[0];
+    (byWeek[week] ??= []).push(w.lb);
+  }
+  return Object.entries(byWeek)
+    .sort(([a], [b]) => (a < b ? -1 : 1))
+    .map(([week, lbs]) => ({ week, avg: lbs.reduce((s, v) => s + v, 0) / lbs.length, n: lbs.length }));
+}
+
+// How far off pace the actual rate can be before suggesting a change, and the
+// size of each change (lb/week and cal/day).
+const PACE_SLACK = 0.25;
+export const ADJUST_STEP = 150;
+const PACE_WEEKS = 2; // first and latest weekly averages must be this many weeks apart
+
+// Compares the weekly-average trend with the planned rate, counting only
+// weigh-ins since the goal started or the last adjustment.
+// Returns { ready: false } until there's enough data, else
+// { ready: true, rate, planned, change } where change is +/-ADJUST_STEP or 0.
+export function paceCheck(profile, weights, today, adjustedOn) {
+  const since = adjustedOn && adjustedOn > profile.startDate ? adjustedOn : profile.startDate;
+  const weeks = weeklyAverages(weights, since);
+  const first = weeks[0];
+  const last = weeks[weeks.length - 1];
+  const span = weeks.length > 1 ? daysBetween(first.week, last.week) / 7 : 0;
+  // A trend from weigh-ins that stopped weeks ago says nothing about now.
+  const stale = last && daysBetween(last.week, today) > 13;
+  if (span < PACE_WEEKS || stale) {
+    return { ready: false, since, readyOn: addDays(weekOf(since)[0], PACE_WEEKS * 7), stale };
+  }
+  const rate = (last.avg - first.avg) / span;
+  const sign = profile.goal === 'cut' ? -1 : profile.goal === 'bulk' ? 1 : 0;
+  const planned = sign * (profile.rate || 0);
+  const off = rate - planned;
+  const change = off < -PACE_SLACK ? ADJUST_STEP : off > PACE_SLACK ? -ADJUST_STEP : 0;
+  return { ready: true, since, rate, planned, change };
 }

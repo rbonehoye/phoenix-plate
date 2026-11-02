@@ -10,6 +10,8 @@ export const DEFAULT_SETTINGS = {
   profile: null, // see GoalsForm in Settings.jsx
   macros: null, // { protein, carbs, fat } percents; null = recommended for the goal
   calorieOverride: 0, // 0 = use the calculated target
+  calorieAdjust: 0, // cal/day added to the calculated target from the weigh-in trend
+  adjustedOn: null, // date of the last trend adjustment; the next check starts here
 };
 
 function read(key, fallback) {

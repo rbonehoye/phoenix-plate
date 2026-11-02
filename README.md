@@ -21,6 +21,10 @@ No App Store, no Apple Developer account.
   macro split you can change.
 - **Progress:** weigh-ins chart with a projection to your goal weight, a
   milestone timeline, weekly calories, streak and averages.
+- **Weekly average and pace check:** weigh-ins are averaged per week. After
+  2 weeks of weigh-ins, the app compares the trend with your planned rate and,
+  if you're more than 0.25 lb/week off, offers a one-tap 150 cal/day change.
+  The next check starts fresh from the day you change it.
 - **Themes:** grey with Elon maroon and gold; follows the phone's light/dark
   mode, or pick one in Settings.
 - **Private:** your log, weigh-ins and goals are stored only on your phone

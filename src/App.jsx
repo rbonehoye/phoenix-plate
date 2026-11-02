@@ -147,6 +147,7 @@ export default function App() {
             weights={weights}
             settings={settings}
             targets={targets}
+            onChangeSettings={setSettings}
             onLogWeight={logWeight}
             onOpenDay={openDay}
             onSetup={() => setTab('settings')}
